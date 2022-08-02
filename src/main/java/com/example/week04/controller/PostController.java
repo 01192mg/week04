@@ -6,7 +6,6 @@ import com.example.week04.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
 @RequiredArgsConstructor
 public class PostController {
 
