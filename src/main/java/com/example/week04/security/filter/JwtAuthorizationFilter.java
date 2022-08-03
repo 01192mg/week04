@@ -3,11 +3,10 @@ package com.example.week04.security.filter;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
-import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.example.week04.entity.User;
-import com.example.week04.repository.UserRepository;
-import com.example.week04.security.PrincipalDetails;
+import com.example.week04.entity.Member;
+import com.example.week04.repository.MemberRepository;
+import com.example.week04.security.UserDetailsImpl;
 import com.example.week04.security.jwt.JwtProperties;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,11 +24,11 @@ import java.util.Objects;
 // 인가
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
-	private final UserRepository userRepository;
+	private final MemberRepository memberRepository;
 
-	public JwtAuthorizationFilter(AuthenticationManager authenticationManager, UserRepository userRepository) {
+	public JwtAuthorizationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository) {
 		super(authenticationManager);
-		this.userRepository = userRepository;
+		this.memberRepository = memberRepository;
 	}
 
 	@Override
@@ -61,15 +60,15 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 		String username = decodedAccessToken.getClaim(JwtProperties.CLAIM_SUBJECT).asString();
 		System.out.println("검증끝 username=" + username);
 		if (username != null) {
-			User user = userRepository.findByNickname(username).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+			Member member = memberRepository.findByNickname(username).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
 			// 인증은 토큰 검증시 끝. 인증을 하기 위해서가 아닌 스프링 시큐리티가 수행해주는 권한 처리를 위해
 			// 아래와 같이 토큰을 만들어서 Authentication 객체를 강제로 만들고 그걸 세션에 저장!
-			PrincipalDetails principalDetails = new PrincipalDetails(user);
+			UserDetailsImpl userDetailsImpl = new UserDetailsImpl(member);
 			Authentication authentication = new UsernamePasswordAuthenticationToken(
-					principalDetails, // 나중에 컨트롤러에서 DI해서 쓸 때 사용하기 편함.
+					userDetailsImpl, // 나중에 컨트롤러에서 DI해서 쓸 때 사용하기 편함.
 					null, // 패스워드는 모르니까 null 처리, 어차피 지금 인증하는게 아니니까!!
-					principalDetails.getAuthorities());
+					userDetailsImpl.getAuthorities());
 
 			// 강제로 시큐리티의 세션에 접근하여 값 저장
 			SecurityContextHolder.getContext().setAuthentication(authentication);

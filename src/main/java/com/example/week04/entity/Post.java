@@ -1,10 +1,12 @@
 package com.example.week04.entity;
 
 import com.example.week04.dto.PostRequestDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @Entity
@@ -19,20 +21,23 @@ public class Post extends TimeStamped {
     private String title;
 
     @Column(nullable = false)
-    private String author;
-
-    @Column(nullable = false)
     private String content;
 
-    public Post(PostRequestDto requestDto) {
+    @ManyToOne
+    private Member member;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+    private List<Comment> comments;
+
+    public Post(PostRequestDto requestDto, Member member) {
         this.title = requestDto.getTitle();
         this.content = requestDto.getContent();
-        this.author = requestDto.getAuthor();
+        this.member = member;
     }
 
     public void update(PostRequestDto requestDto) {
         this.title = requestDto.getTitle();
         this.content = requestDto.getContent();
-        this.author = requestDto.getAuthor();
     }
 }

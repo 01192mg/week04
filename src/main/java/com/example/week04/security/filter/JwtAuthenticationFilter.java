@@ -1,7 +1,7 @@
 package com.example.week04.security.filter;
 
 import com.example.week04.dto.UserRequestDto;
-import com.example.week04.security.PrincipalDetails;
+import com.example.week04.security.UserDetailsImpl;
 import com.example.week04.security.jwt.JwtProperties;
 import com.example.week04.security.jwt.JwtUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,7 +64,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		Authentication authentication =
 				getAuthenticationManager().authenticate(authenticationToken);
 
-		PrincipalDetails principalDetailis = (PrincipalDetails) authentication.getPrincipal();
+		UserDetailsImpl principalDetailis = (UserDetailsImpl) authentication.getPrincipal();
 		System.out.println("Authentication : "+principalDetailis.getUser().getNickname());
 		return authentication;
 	}
@@ -73,11 +73,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	@Override
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
 			Authentication authResult) throws ServletException, IOException {
-		PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
+		UserDetailsImpl userDetailsImpl = (UserDetailsImpl) authResult.getPrincipal();
 
 		Long expireTime = JwtUtils.getTokenExpireTime();
 
-		String jwtToken = JwtUtils.createJwtToken(principalDetails, expireTime);
+		String jwtToken = JwtUtils.createJwtToken(userDetailsImpl, expireTime);
 		String refreshToken = JwtUtils.createRefreshToken(expireTime);
 		String tokenExpireTime = String.valueOf(expireTime);
 

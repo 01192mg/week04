@@ -1,6 +1,6 @@
 package com.example.week04.config;
 
-import com.example.week04.repository.UserRepository;
+import com.example.week04.repository.MemberRepository;
 import com.example.week04.security.filter.JwtAuthenticationFilter;
 import com.example.week04.security.filter.JwtAuthorizationFilter;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity // 시큐리티 활성화 -> 기본 스프링 필터체인에 등록
 public class SecurityConfig {
 
-	private final UserRepository userRepository;
+	private final MemberRepository memberRepository;
 	private final CorsConfig corsConfig;
 
 	@Bean
@@ -39,12 +39,8 @@ public class SecurityConfig {
 				.httpBasic().disable()
 				.apply(new MyCustomDsl()) // 커스텀 필터 등록
 				.and()
-				.authorizeRequests(authroize -> authroize.antMatchers("/api/v1/user/**")
-						.access("hasRole('ROLE_MEMBER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-						.antMatchers("/api/v1/manager/**")
-						.access("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-						.antMatchers("/api/v1/admin/**")
-						.access("hasRole('ROLE_ADMIN')")
+				.authorizeRequests(authroize -> authroize.antMatchers("/api/auth/**")
+						.access("hasRole('ROLE_MEMBER')")
 						.anyRequest().permitAll())
 				.build();
 	}
@@ -56,7 +52,7 @@ public class SecurityConfig {
 			http
 					.addFilter(corsConfig.corsFilter()) // Controller의 @CrossOrigin(인증x 때만 적용됨), 인증이 있는것 까지 처리하려면 시큐리티 필터에 등록해 줘야함
 					.addFilter(new JwtAuthenticationFilter(authenticationManager))
-					.addFilter(new JwtAuthorizationFilter(authenticationManager, userRepository));
+					.addFilter(new JwtAuthorizationFilter(authenticationManager, memberRepository));
 		}
 	}
 

@@ -1,6 +1,6 @@
 package com.example.week04.security;
 
-import com.example.week04.entity.User;
+import com.example.week04.entity.Member;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,26 +9,26 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Getter
-public class PrincipalDetails implements UserDetails {
+public class UserDetailsImpl implements UserDetails {
 
-    private final User user;
+    private final Member member;
 
-    public PrincipalDetails(User user) {
-        this.user = user;
+    public UserDetailsImpl(Member member) {
+        this.member = member;
     }
 
-    public User getUser() {
-        return user;
+    public Member getUser() {
+        return member;
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return member.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getNickname();
+        return member.getNickname();
     }
 
     @Override
@@ -54,7 +54,7 @@ public class PrincipalDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(user::getAuthority);
+        authorities.add(member::getAuthority);
         return authorities;
     }
 }

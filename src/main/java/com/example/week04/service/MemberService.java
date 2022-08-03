@@ -2,26 +2,28 @@ package com.example.week04.service;
 
 import com.example.week04.dto.ResponseDto;
 import com.example.week04.dto.UserRequestDto;
-import com.example.week04.entity.User;
-import com.example.week04.repository.UserRepository;
-import com.example.week04.security.PrincipalDetails;
+import com.example.week04.entity.Member;
+import com.example.week04.repository.MemberRepository;
+import com.example.week04.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
-public class UserService {
+@Transactional
+public class MemberService {
     private final PasswordEncoder passwordEncoder;
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
-    public User registerUser(UserRequestDto requestDto) {
+    public ResponseDto<?> registerUser(UserRequestDto requestDto) {
         // 회원 ID 중복 확인
         String nickname = requestDto.getNickname();
-        Optional<User> found = userRepository.findByNickname(nickname);
+        Optional<Member> found = memberRepository.findByNickname(nickname);
         if (found.isPresent()) {
             throw new IllegalArgumentException("중복된 사용자 ID 가 존재합니다.");
         }
@@ -34,13 +36,13 @@ public class UserService {
         // 패스워드 암호화
         String password = passwordEncoder.encode(requestDto.getPassword());
 
-        User user = new User(nickname, password);
-        return userRepository.save(user);
+        Member member = new Member(nickname, password);
+        return ResponseDto.success(memberRepository.save(member));
     }
 
-    public ResponseDto<User> login(Authentication authentication) {
-        PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
-        User user = principal.getUser();
-        return ResponseDto.success(user);
+    public ResponseDto<?> login(Authentication authentication) {
+        UserDetailsImpl principal = (UserDetailsImpl) authentication.getPrincipal();
+        Member member = principal.getUser();
+        return ResponseDto.success(member);
     }
 }

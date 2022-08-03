@@ -2,18 +2,18 @@ package com.example.week04.security.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.example.week04.security.PrincipalDetails;
+import com.example.week04.security.UserDetailsImpl;
 
 import java.util.Date;
 
 public class JwtUtils {
 
-    public static String createJwtToken(PrincipalDetails principalDetails, Long expireTime) {
+    public static String createJwtToken(UserDetailsImpl userDetailsImpl, Long expireTime) {
         return JwtProperties.ACCESS_TOKEN_PREFIX +
                 JWT.create()
-                .withSubject(principalDetails.getUsername())
+                .withSubject(userDetailsImpl.getUsername())
                 .withExpiresAt(new Date(expireTime))
-                .withClaim(JwtProperties.CLAIM_AUTH, principalDetails.getUser().getAuthority())
+                .withClaim(JwtProperties.CLAIM_AUTH, userDetailsImpl.getUser().getAuthority())
                 .sign(Algorithm.HMAC512(JwtProperties.SECRET));
     }
 

@@ -11,7 +11,7 @@ import javax.persistence.*;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class User extends TimeStamped {
+public class Member extends TimeStamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +33,7 @@ public class User extends TimeStamped {
         return authority.getAuthority();
     }
 
-    public User(String nickname, String password) {
+    public Member(String nickname, String password) {
         this.nickname = nickname;
         this.password = password;
         this.authority = UserRoleEnum.MEMBER;
