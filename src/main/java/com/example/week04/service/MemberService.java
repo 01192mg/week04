@@ -5,8 +5,8 @@ import com.example.week04.dto.UserRequestDto;
 import com.example.week04.entity.Member;
 import com.example.week04.repository.MemberRepository;
 import com.example.week04.security.UserDetailsImpl;
+import com.example.week04.utils.validator.SignupInputValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +21,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     public ResponseDto<?> registerUser(UserRequestDto requestDto) {
+        SignupInputValidator.validate(requestDto);
         // 회원 ID 중복 확인
         String nickname = requestDto.getNickname();
         Optional<Member> found = memberRepository.findByNickname(nickname);
@@ -40,9 +41,8 @@ public class MemberService {
         return ResponseDto.success(memberRepository.save(member));
     }
 
-    public ResponseDto<?> login(Authentication authentication) {
-        UserDetailsImpl principal = (UserDetailsImpl) authentication.getPrincipal();
-        Member member = principal.getUser();
+    public ResponseDto<?> login(UserDetailsImpl userDetails) {
+        Member member = userDetails.getUser();
         return ResponseDto.success(member);
     }
 }

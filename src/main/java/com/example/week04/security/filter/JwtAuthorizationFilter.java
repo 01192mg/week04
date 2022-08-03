@@ -36,14 +36,13 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 			throws IOException, ServletException {
 		String accessToken = request.getHeader(JwtProperties.HEADER_ACCESS_TOKEN);
 		String refreshToken = request.getHeader(JwtProperties.HEADER_REFRESH_TOKEN);
+		//access, refresh 토큰 없으면 controller 로 보냄
 		if (accessToken == null || !accessToken.startsWith(JwtProperties.ACCESS_TOKEN_PREFIX) || refreshToken == null) {
 			chain.doFilter(request, response);
 			return;
 		}
 		accessToken = accessToken.replace(JwtProperties.ACCESS_TOKEN_PREFIX, "");
 
-		System.out.println("accessToken : " + accessToken);
-		System.out.println("refreshToken : " + refreshToken);
 		System.out.println("검증시작");
 		// 토큰 검증 (이게 인증이기 때문에 AuthenticationManager도 필요 없음)
 		// 내가 SecurityContext에 집적접근해서 세션을 만들때 자동으로 UserDetailsService에 있는
@@ -51,8 +50,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 		DecodedJWT decodedAccessToken = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(accessToken);
 		Long accessTokenExp = decodedAccessToken.getClaim(JwtProperties.CLAIM_EXPIRE).asLong();
 		Long refreshTokenExp = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(refreshToken).getClaim(JwtProperties.CLAIM_EXPIRE).asLong();
-		System.out.println(accessTokenExp);
-		System.out.println(refreshTokenExp);
 		if (!Objects.equals(accessTokenExp, refreshTokenExp)) {
 			throw new SignatureVerificationException(Algorithm.HMAC512(JwtProperties.SECRET));
 		}
@@ -62,8 +59,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 		if (username != null) {
 			Member member = memberRepository.findByNickname(username).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-			// 인증은 토큰 검증시 끝. 인증을 하기 위해서가 아닌 스프링 시큐리티가 수행해주는 권한 처리를 위해
-			// 아래와 같이 토큰을 만들어서 Authentication 객체를 강제로 만들고 그걸 세션에 저장!
+			// 인증은 토큰 검증시 이미 끝.
+			// 인증이 아닌 스프링 시큐리티가 수행해주는 권한 처리를 위해 아래와 같이 토큰을 만들어서 Authentication 객체를 강제로 만들고 그걸 세션에 저장!
 			UserDetailsImpl userDetailsImpl = new UserDetailsImpl(member);
 			Authentication authentication = new UsernamePasswordAuthenticationToken(
 					userDetailsImpl, // 나중에 컨트롤러에서 DI해서 쓸 때 사용하기 편함.
