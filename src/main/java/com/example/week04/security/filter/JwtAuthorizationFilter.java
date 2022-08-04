@@ -2,7 +2,6 @@ package com.example.week04.security.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.week04.entity.Member;
 import com.example.week04.repository.MemberRepository;
@@ -47,15 +46,23 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 		// 토큰 검증 (이게 인증이기 때문에 AuthenticationManager도 필요 없음)
 		// 내가 SecurityContext에 집적접근해서 세션을 만들때 자동으로 UserDetailsService에 있는
 		// loadByUsername이 호출됨.
-		DecodedJWT decodedAccessToken = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(accessToken);
-		Long accessTokenExp = decodedAccessToken.getClaim(JwtProperties.CLAIM_EXPIRE).asLong();
-		Long refreshTokenExp = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(refreshToken).getClaim(JwtProperties.CLAIM_EXPIRE).asLong();
-		if (!Objects.equals(accessTokenExp, refreshTokenExp)) {
-			throw new SignatureVerificationException(Algorithm.HMAC512(JwtProperties.SECRET));
-		}
 
-		String username = decodedAccessToken.getClaim(JwtProperties.CLAIM_SUBJECT).asString();
-		System.out.println("검증끝 username=" + username);
+		Long accessTokenExp;
+		Long refreshTokenExp;
+		String username;
+		try {
+			DecodedJWT decodedAccessToken = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(accessToken);
+			DecodedJWT decodedRefreshToken = JWT.require(Algorithm.HMAC512(JwtProperties.SECRET)).build().verify(refreshToken);
+			accessTokenExp = decodedAccessToken.getClaim(JwtProperties.CLAIM_EXPIRE).asLong();
+			refreshTokenExp = decodedRefreshToken.getClaim(JwtProperties.CLAIM_EXPIRE).asLong();
+			if (!Objects.equals(accessTokenExp, refreshTokenExp)) {
+				throw new IllegalArgumentException("access, refresh token의 만료시간이 다릅니다.");
+			}
+			username = decodedAccessToken.getClaim(JwtProperties.CLAIM_SUBJECT).asString();
+		} catch (Exception e) {
+			throw new IllegalArgumentException("토큰 검증 실패");
+		}
+		System.out.println("검증끝");
 		if (username != null) {
 			Member member = memberRepository.findByNickname(username).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 

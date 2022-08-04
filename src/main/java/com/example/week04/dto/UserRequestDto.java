@@ -13,11 +13,11 @@ public class UserRequestDto {
 
     public static UserRequestDto from(HttpServletRequest request) {
         ObjectMapper om = new ObjectMapper();
-        UserRequestDto loginRequestDto = null;
+        UserRequestDto loginRequestDto;
         try {
             loginRequestDto = om.readValue(request.getInputStream(), UserRequestDto.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalArgumentException(e.getMessage());
         }
         return loginRequestDto;
     }

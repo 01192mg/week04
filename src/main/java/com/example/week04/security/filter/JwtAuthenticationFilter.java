@@ -82,6 +82,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
 	@Override
 	protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
-		throw new RuntimeException(failed.getMessage());
+		throw new IllegalArgumentException(failed.getMessage());
 	}
 }
